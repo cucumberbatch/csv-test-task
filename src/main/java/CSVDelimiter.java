@@ -1,37 +1,24 @@
-import io.CSVFileParser;
-import io.CSVFileSaver;
-import model.CSVTable;
-
-import java.io.File;
-import java.util.LinkedList;
-import java.util.List;
+import io.CSVMediator;
+import model.Configuration;
 
 public class CSVDelimiter {
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) {
+        String[] inputFilePaths       = args;
+        String   outputFilesPath      = "";
+        String   outputFileMask       = "";
+        String   separationCharacter  = ";";
 
-        CSVTable table            = new CSVTable();
-        List<Thread> tasksToRead  = new LinkedList<>();
-        List<Thread> tasksToWrite = new LinkedList<>();
+        Configuration configuration = new Configuration.Builder(inputFilePaths)
+                .setOutputFilesPath(outputFilesPath)
+                .setOutputFilesMask(outputFileMask)
+                .setSeparationCharacter(separationCharacter)
+                .build();
 
-        for (String inputFileName : args) {
-            tasksToRead.add(new Thread(new CSVFileParser(new File(inputFileName), table)));
-        }
+        CSVMediator mediator = new CSVMediator(configuration);
 
-        for (Thread thread : tasksToRead) {
-            thread.start();
-        }
+        mediator.executeTasks();
 
-        for (Thread thread : tasksToRead) {
-            thread.join();
-        }
-
-        for (String outputFileName : table.getKeySet()) {
-            tasksToWrite.add(new Thread(new CSVFileSaver(new File(outputFileName), table)));
-        }
-
-        for (Thread thread : tasksToWrite) {
-            thread.start();
-        }
+        System.out.println(mediator.getTable());
     }
 }

@@ -1,25 +1,18 @@
 package io;
 
-import model.CSVTable;
-
 import java.io.*;
 import java.util.concurrent.CopyOnWriteArraySet;
 
-public class CSVFileParser implements Runnable {
-    private final CSVTable  table;
-    private final File      file;
+public class CSVFileParser extends AbstractFileParser {
+    private final CSVMediator   mediator;
 
-    public CSVFileParser(File file, CSVTable table) {
-        this.table  = table;
-        this.file   = file;
+    public CSVFileParser(File file, CSVMediator mediator) {
+        super(file);
+        this.mediator = mediator;
     }
 
     @Override
-    public void run() {
-        readFromCSVFile();
-    }
-
-    private void readFromCSVFile() {
+    public void parseInputFile() {
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String[] headersRow = getParsedCSVArray(reader.readLine());
             initializeColumnHeaders(headersRow);
@@ -32,8 +25,8 @@ public class CSVFileParser implements Runnable {
     private void initializeColumnHeaders(String[] headersRow) {
         synchronized (this) {
             for (String header : headersRow) {
-                if (table.getColumnSetByKey(header) == null) {
-                    table.put(header, new CopyOnWriteArraySet<>());
+                if (mediator.getTableColumnSetByKey(header) == null) {
+                    mediator.putIntoTable(header, new CopyOnWriteArraySet<>());
                 }
             }
         }
@@ -47,13 +40,13 @@ public class CSVFileParser implements Runnable {
             separatedValues = getParsedCSVArray(readedRow);
 
             for (int index = 0; index < headersRow.length; index++) {
-                table.putValueInColumn(headersRow[index], separatedValues[index]);
+                mediator.putValueInTableColumn(headersRow[index], separatedValues[index]);
             }
         }
     }
 
     private String[] getParsedCSVArray(String s) {
-        return s.split(table.getSeparationCharacter());
+        return s.split(mediator.getTableSeparationCharacter());
     }
 
 }

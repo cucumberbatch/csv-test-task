@@ -1,25 +1,19 @@
 package io;
 
-import model.CSVTable;
-
 import java.io.*;
 
-public class CSVFileSaver implements Runnable {
-    private final CSVTable table;
-    private final File file;
+public class CSVFileSaver extends AbstractFileSaver {
+    private final CSVMediator mediator;
 
-    public CSVFileSaver(File file, CSVTable table) {
-        this.table = table;
-        this.file = file;
+    public CSVFileSaver(File file, String mapKey, CSVMediator mediator) {
+        super(file, mapKey);
+        this.mediator = mediator;
     }
 
-    public void run() {
-        writeIntoCSVFile();
-    }
-
-    private void writeIntoCSVFile() {
+    @Override
+    public void writeOutputFile() {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-            for (String value : table.getColumnSetByKey(file.getName())) {
+            for (String value : mediator.getColumnSetByKey(mapKey)) {
                 writeCSVValueIntoFile(writer, value);
             }
         } catch (IOException fileNotFoundException) {
@@ -32,6 +26,6 @@ public class CSVFileSaver implements Runnable {
     }
 
     private String getCSVFormattedRow(String value) {
-        return value.concat(table.getSeparationCharacter());
+        return value.concat(mediator.getTableSeparationCharacter());
     }
 }
